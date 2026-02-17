@@ -17,18 +17,35 @@ export const useAuthStore = create((set, get) => ({
   socket: null,
   onlineUsers: [],
 
+  // checkAuth: async () => {
+  //   try {
+  //     const res = await axiosInstance.get("/auth/check");
+  //     set({ authUser: res.data });
+  //     get().connectSocket();
+  //   } catch (error) {
+  //     console.log("Error in authCheck:", error);
+  //     set({ authUser: null });
+  //   } finally {
+  //     set({ isCheckingAuth: false });
+  //   }
+  // },
   checkAuth: async () => {
-    try {
-      const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data });
+  try {
+    const res = await axiosInstance.get("/auth/check");
+    set({ authUser: res.data });
+    
+    // Only connect if authenticated
+    if (res.data?._id) {
       get().connectSocket();
-    } catch (error) {
-      console.log("Error in authCheck:", error);
-      set({ authUser: null });
-    } finally {
-      set({ isCheckingAuth: false });
     }
-  },
+
+  } catch (error) {
+    set({ authUser: null });
+  } finally {
+    set({ isCheckingAuth: false });
+  }
+},
+
 
   signup: async (data) => {
     set({ isSigningUp: true });
@@ -84,23 +101,51 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
+// connectSocket: () => {
+//     const { authUser } = get();
+//     if (!authUser || get().socket?.connected) return;
 
-    const socket = io(BASE_URL, {
-      withCredentials: true, // this ensures cookies are sent with the connection
-    });
+//     const socket = io(BASE_URL, {
+//       withCredentials: true, // this ensures cookies are sent with the connection
+//     });
 
-    socket.connect();
+//     socket.connect();
 
-    set({ socket });
+//     set({ socket });
 
-    // listen for online users event
-    socket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
-    });
-  },
+//     // listen for online users event
+//     socket.on("getOnlineUsers", (userIds) => {
+//       set({ onlineUsers: userIds });
+//     });
+//   },  
+connectSocket: () => {
+  const { authUser, socket } = get();
+
+  // 🚨 DO NOT CONNECT IF NOT LOGGED IN
+  if (!authUser) return;
+
+  // 🚨 Prevent duplicate connections
+  if (socket?.connected) return;
+
+  const newSocket = io(BASE_URL, {
+    withCredentials: true,
+    autoConnect: false,        // 🔥 important
+    transports: ["websocket"], // 🔥 avoid polling CORS issues
+  });
+
+  newSocket.connect();
+
+  newSocket.on("connect_error", (err) => {
+    console.log("Socket connection error:", err.message);
+  });
+
+  newSocket.on("getOnlineUsers", (userIds) => {
+    set({ onlineUsers: userIds });
+  });
+
+  set({ socket: newSocket });
+},
+
 
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
