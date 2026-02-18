@@ -13,7 +13,10 @@ const __dirname = path.resolve();
 
 const PORT = ENV.PORT || 3000;
 
-app.use(express.json({ limit: "5mb" })); // req.body
+// 🔥 VERY IMPORTANT FOR RENDER + SECURE COOKIES
+app.set("trust proxy", 1);
+
+
 app.use(
   cors({
     origin: [
@@ -24,6 +27,10 @@ app.use(
     credentials: true,
   })
 );
+
+// 🔥 Handle preflight explicitly
+app.options("*", cors());
+app.use(express.json({ limit: "5mb" })); // req.body
 
 
 app.use(cookieParser());
