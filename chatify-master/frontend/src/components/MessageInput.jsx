@@ -25,7 +25,7 @@ function MessageInput() {
       image: imagePreview,
     });
     setText("");
-    setImagePreview("");
+    setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -47,7 +47,7 @@ function MessageInput() {
   };
 
   return (
-    <div className="p-5 border-t border-white/5 backdrop-blur-xl bg-slate-900/70">
+    <div className="shrink-0 p-5 border-t border-white/5 backdrop-blur-xl bg-slate-900/70">
 
   {/* 🔥 Image Preview */}
   <AnimatePresence>

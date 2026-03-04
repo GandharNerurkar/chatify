@@ -29,14 +29,14 @@ function ChatContainer() {
 
   useEffect(() => {
     if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messageEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [messages]);
 
   return (
     <>
       <ChatHeader />
-      <div className="flex-1 px-6 py-8 overflow-y-auto bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <div className="flex-1 min-h-0 px-6 pt-8 pb-3 overflow-y-auto bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
   {messages.length > 0 && !isMessagesLoading ? (
     <div className="max-w-4xl mx-auto space-y-6">
       {messages.map((msg, index) => {
